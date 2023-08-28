@@ -1,0 +1,14 @@
+[package]
+name = "aho_corasick_ffi"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "aho_corasick_ffi"
+crate-type = ["staticlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aho-corasick = "1.0.4"
+libc = "0.2"
