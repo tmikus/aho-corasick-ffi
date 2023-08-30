@@ -2,7 +2,6 @@ extern crate aho_corasick;
 
 use aho_corasick::{AhoCorasick, AhoCorasickKind, Match, MatchKind, StartKind};
 use libc::size_t;
-use std::ffi::CStr;
 
 #[repr(C)]
 pub struct AhoCorasickMatch {
