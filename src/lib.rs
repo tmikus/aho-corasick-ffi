@@ -23,12 +23,12 @@ fn aho_corasick_match_from_match(m: Match) -> AhoCorasickMatch {
 #[inline]
 fn patterns_from_c(
     patterns: *const *const std::os::raw::c_char,
+    pattern_lens: *const size_t,
     num_patterns: usize,
-) -> Vec<String> {
+) -> Vec<&'static [u8]> {
     (0..num_patterns)
         .map(|i| {
-            let pattern = unsafe { CStr::from_ptr(*patterns.offset(i as isize)) };
-            pattern.to_string_lossy().into_owned()
+            text_from_c(unsafe { *patterns.add(i) }, unsafe { *pattern_lens.add(i) })
         })
         .collect::<Vec<_>>()
 }
@@ -84,10 +84,11 @@ impl AhoCorasickBuilderOptions {
 #[no_mangle]
 pub extern "C" fn build_automaton(
     patterns: *const *const std::os::raw::c_char,
+    pattern_lens: *const size_t,
     num_patterns: usize,
     options: *const AhoCorasickBuilderOptions,
 ) -> *mut AhoCorasick {
-    let rust_patterns = patterns_from_c(patterns, num_patterns);
+    let rust_patterns = patterns_from_c(patterns, pattern_lens, num_patterns);
     let rust_options = unsafe { &*options };
     let mut builder = AhoCorasick::builder();
     builder.ascii_case_insensitive(rust_options.ascii_case_insensitive != 0);
@@ -108,9 +109,10 @@ pub extern "C" fn build_automaton(
 #[no_mangle]
 pub extern "C" fn create_automaton(
     patterns: *const *const std::os::raw::c_char,
+    pattern_lens: *const size_t,
     num_patterns: usize,
 ) -> *mut AhoCorasick {
-    let rust_patterns = patterns_from_c(patterns, num_patterns);
+    let rust_patterns = patterns_from_c(patterns, pattern_lens, num_patterns);
     match AhoCorasick::new(&rust_patterns) {
         Ok(automaton) => Box::into_raw(Box::new(automaton)),
         Err(_) => std::ptr::null_mut(),
